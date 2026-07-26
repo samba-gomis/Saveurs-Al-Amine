@@ -1,5 +1,14 @@
 const { getStore } = require("@netlify/blobs");
 
+function getBlobStore(name) {
+  const siteID = process.env.BLOBS_SITE_ID;
+  const token = process.env.BLOBS_TOKEN;
+  if (siteID && token) {
+    return getStore({ name, siteID, token });
+  }
+  return getStore(name);
+}
+
 const SEED_MENU = [
   // Plats traditionnels
   { id: "plat-diaga", category: "Plats traditionnels", name: "Thiébou Diaga", description: "Riz au poisson, sauce tomate, légumes.", price: 10, priceLabel: "10€ la barquette", image: "/images/flyer-diaga-national.jpg", available: true },
@@ -48,7 +57,7 @@ function isAuthorized(event) {
 }
 
 exports.handler = async (event) => {
-  const store = getStore("menu");
+  const store = getBlobStore("menu");
   const headers = { "Content-Type": "application/json" };
 
   if (event.httpMethod === "GET") {

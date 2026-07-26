@@ -1,5 +1,14 @@
 const { getStore } = require("@netlify/blobs");
 
+function getBlobStore(name) {
+  const siteID = process.env.BLOBS_SITE_ID;
+  const token = process.env.BLOBS_TOKEN;
+  if (siteID && token) {
+    return getStore({ name, siteID, token });
+  }
+  return getStore(name);
+}
+
 function isAuthorized(event) {
   const provided = event.headers["x-admin-password"] || event.headers["X-Admin-Password"];
   const expected = process.env.ADMIN_PASSWORD;
@@ -7,7 +16,7 @@ function isAuthorized(event) {
 }
 
 exports.handler = async (event) => {
-  const store = getStore("orders");
+  const store = getBlobStore("orders");
   const headers = { "Content-Type": "application/json" };
 
   if (event.httpMethod === "POST") {

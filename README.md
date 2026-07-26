@@ -40,10 +40,23 @@ Le site utilise des fonctions serveur (pour le menu et les commandes), donc il f
 
 1. Dans Netlify : **Site configuration → Environment variables → Add a variable**.
 2. Nom : `ADMIN_PASSWORD`, valeur : le mot de passe de ton choix (garde-le secret).
-3. Redéploie le site (**Deploys → Trigger deploy → Deploy site**) pour que le mot de passe soit pris en compte.
-4. Va sur `https://ton-site.netlify.app/admin` et connecte-toi avec ce mot de passe.
+3. Vérifie que la variable s'applique bien aux **Functions** (case "Scopes" → laisse "All scopes" coché, ne sélectionne pas seulement "Builds").
+4. Redéploie le site (**Deploys → Trigger deploy → Deploy site**) pour que le mot de passe soit pris en compte.
+5. Va sur `https://ton-site.netlify.app/admin` et connecte-toi avec ce mot de passe.
 
-C'est le seul réglage obligatoire. Netlify Blobs (le stockage du menu et des commandes) fonctionne automatiquement, sans rien configurer de plus.
+### 4. Configurer le stockage (Netlify Blobs)
+
+Netlify Blobs (le stockage du menu et des commandes) est censé se configurer tout seul. Sur certains sites tout neufs, Netlify n'y arrive pas automatiquement (erreur `MissingBlobsEnvironmentError`) — dans ce cas, il faut le configurer à la main une fois, avec 2 variables supplémentaires :
+
+1. Récupère le **Site ID** : **Site configuration → General → Site details**, copie la valeur "Site ID".
+2. Crée un jeton d'accès personnel : clique sur ton avatar (en haut à droite) → **User settings → Applications → Personal access tokens → New access token**. Donne-lui un nom, génère-le, et copie-le immédiatement (il ne sera plus affiché après).
+3. Retourne dans **Site configuration → Environment variables → Add a variable** et ajoute :
+   - `BLOBS_SITE_ID` = le Site ID copié à l'étape 1
+   - `BLOBS_TOKEN` = le jeton copié à l'étape 2
+   (Scope : "All scopes" pour les deux.)
+4. Redéploie (**Deploys → Trigger deploy → Clear cache and deploy site**).
+
+Si le stockage automatique fonctionne déjà chez toi, ces deux variables ne sont pas nécessaires — le site les utilisera uniquement si elles sont présentes.
 
 ## Utiliser l'espace gérant (`/admin`)
 
