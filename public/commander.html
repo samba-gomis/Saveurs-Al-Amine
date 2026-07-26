@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Commander — Saveurs Al Amine</title>
+<meta name="description" content="Validez votre commande Saveurs Al Amine : livraison à domicile ou retrait sur place.">
+<link rel="icon" href="/images/logo.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="nav">
+    <a href="/" class="nav-brand"><img src="/images/logo.jpg" alt="Saveurs Al Amine"> Saveurs Al Amine</a>
+    <button class="nav-toggle" aria-label="Menu">☰</button>
+    <div class="nav-links">
+      <a href="/">Accueil</a>
+      <a href="/menu.html">Menu</a>
+      <a href="/evenements.html">Événements</a>
+      <a href="/galerie.html">Galerie</a>
+      <a href="/contact.html">Contact</a>
+      <a href="/commander.html" class="nav-cta active">Commander</a>
+    </div>
+  </nav>
+</header>
+
+<section>
+  <div class="container section-title">
+    <span class="eyebrow">Dernière étape</span>
+    <h1>Valider ma commande</h1>
+    <p>Vérifiez votre panier, indiquez vos coordonnées et le mode de récupération souhaité.</p>
+  </div>
+
+  <div class="container" style="max-width:720px;">
+    <div id="empty-cart-msg" style="display:none;" class="form-card">
+      <p style="text-align:center;">Votre panier est vide pour le moment.</p>
+      <div style="text-align:center; margin-top:16px;">
+        <a href="/menu.html" class="btn btn-primary">Voir le menu</a>
+      </div>
+    </div>
+
+    <div id="order-flow">
+      <div class="form-card" style="margin-bottom:24px;">
+        <h3>Votre panier</h3>
+        <div class="cart-list" id="cart-list"></div>
+        <div class="cart-total">Total : <span id="cart-total-value">0,00 €</span></div>
+      </div>
+
+      <form class="form-card" id="order-form">
+        <div class="form-grid-2">
+          <div class="form-row">
+            <label for="nom">Nom *</label>
+            <input type="text" id="nom" required>
+          </div>
+          <div class="form-row">
+            <label for="prenom">Prénom</label>
+            <input type="text" id="prenom">
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="telephone">Numéro de téléphone *</label>
+          <input type="tel" id="telephone" required placeholder="06 12 34 56 78">
+        </div>
+
+        <div class="form-row">
+          <label>Mode de récupération *</label>
+          <div class="radio-group">
+            <label><input type="radio" name="mode" value="retrait" checked> 🏠 Retrait sur place</label>
+            <label><input type="radio" name="mode" value="livraison"> 🚗 Livraison à domicile</label>
+          </div>
+        </div>
+
+        <div class="form-row" id="adresse-row" style="display:none;">
+          <label for="adresse">Adresse de livraison *</label>
+          <textarea id="adresse" rows="2" placeholder="Adresse complète, code d'accès si besoin..."></textarea>
+        </div>
+
+        <div class="form-row">
+          <label for="notes">Message / précisions (optionnel)</label>
+          <textarea id="notes" rows="2" placeholder="Allergies, horaire souhaité, etc."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">Envoyer ma commande</button>
+        <div id="order-msg"></div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <h4>Saveurs Al Amine</h4>
+      <p>Spécialités africaines faites maison, à Marseille.</p>
+    </div>
+    <div>
+      <h4>Liens</h4>
+      <a href="/menu.html">Notre menu</a>
+      <a href="/commander.html">Commander</a>
+      <a href="/evenements.html">Traiteur événements</a>
+      <a href="/galerie.html">Galerie</a>
+    </div>
+    <div>
+      <h4>Contact</h4>
+      <a href="tel:+33753966207">📞 +33 7 53 96 62 07</a>
+      <a href="https://wa.me/33753966207" target="_blank" rel="noopener">💬 WhatsApp</a>
+      <a href="/contact.html">📍 Marseille</a>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    © <span id="year"></span> Saveurs Al Amine  Fait maison, fait avec amour.
+  </div>
+</footer>
+<a class="whatsapp-fab" href="https://wa.me/33753966207" target="_blank" rel="noopener" aria-label="WhatsApp">💬</a>
+<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+<script src="/js/nav.js"></script>
+<script src="/js/cart.js"></script>
+<script src="/js/api.js"></script>
+<script>
+function renderCart() {
+  const cart = getCart();
+  const emptyMsg = document.getElementById("empty-cart-msg");
+  const flow = document.getElementById("order-flow");
+
+  if (cart.length === 0) {
+    emptyMsg.style.display = "block";
+    flow.style.display = "none";
+    return;
+  }
+  emptyMsg.style.display = "none";
+  flow.style.display = "block";
+
+  const list = document.getElementById("cart-list");
+  list.innerHTML = "";
+  cart.forEach((line) => {
+    const row = document.createElement("div");
+    row.className = "cart-line";
+    row.innerHTML = `
+      <span>${line.name}</span>
+      <span style="display:flex; align-items:center; gap:10px;">
+        <div class="qty-control">
+          <button class="qty-minus" aria-label="Retirer">−</button>
+          <span class="qty-value">${line.qty}</span>
+          <button class="qty-plus" aria-label="Ajouter">+</button>
+        </div>
+        <strong>${formatEuro((Number(line.price) || 0) * line.qty)}</strong>
+      </span>
+    `;
+    row.querySelector(".qty-plus").addEventListener("click", () => {
+      setQty(line.id, line.qty + 1);
+      renderCart();
+      updateCartBar();
+    });
+    row.querySelector(".qty-minus").addEventListener("click", () => {
+      setQty(line.id, line.qty - 1);
+      renderCart();
+      updateCartBar();
+    });
+    list.appendChild(row);
+  });
+
+  document.getElementById("cart-total-value").textContent = formatEuro(cartTotal());
+}
+
+document.querySelectorAll('input[name="mode"]').forEach((radio) => {
+  radio.addEventListener("change", () => {
+    const isLivraison = document.querySelector('input[name="mode"]:checked').value === "livraison";
+    document.getElementById("adresse-row").style.display = isLivraison ? "block" : "none";
+    document.getElementById("adresse").required = isLivraison;
+  });
+});
+
+document.getElementById("order-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const msgEl = document.getElementById("order-msg");
+  msgEl.className = "form-msg";
+  msgEl.textContent = "";
+
+  const cart = getCart();
+  const mode = document.querySelector('input[name="mode"]:checked').value;
+  const payload = {
+    type: "commande",
+    nom: document.getElementById("nom").value.trim(),
+    prenom: document.getElementById("prenom").value.trim(),
+    telephone: document.getElementById("telephone").value.trim(),
+    mode: mode,
+    adresse: document.getElementById("adresse").value.trim(),
+    notes: document.getElementById("notes").value.trim(),
+    items: cart.map((l) => ({ name: l.name, qty: l.qty, price: l.price })),
+    total: formatEuro(cartTotal())
+  };
+
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Envoi en cours...";
+
+  try {
+    await submitOrder(payload);
+    clearCart();
+    document.getElementById("order-flow").innerHTML = `
+      <div class="form-card" style="text-align:center;">
+        <h3>Merci ${payload.prenom || payload.nom} ! 🎉</h3>
+        <p>Votre commande a bien été reçue. Nous vous recontactons rapidement au ${payload.telephone} pour confirmer.</p>
+        <a href="/menu.html" class="btn btn-outline" style="margin-top:16px;">Retour au menu</a>
+      </div>
+    `;
+  } catch (err) {
+    msgEl.className = "form-msg error";
+    msgEl.textContent = err.message || "Une erreur est survenue. Merci de réessayer ou de nous appeler.";
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Envoyer ma commande";
+  }
+});
+
+renderCart();
+</script>
+</body>
+</html>

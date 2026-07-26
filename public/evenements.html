@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Traiteur événements — Mariages, cérémonies — Saveurs Al Amine</title>
+<meta name="description" content="Saveurs Al Amine cuisine pour vos grands événements : mariages, baptêmes, cérémonies familiales. Demandez votre devis en ligne.">
+<link rel="icon" href="/images/logo.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="nav">
+    <a href="/" class="nav-brand"><img src="/images/logo.jpg" alt="Saveurs Al Amine"> Saveurs Al Amine</a>
+    <button class="nav-toggle" aria-label="Menu">☰</button>
+    <div class="nav-links">
+      <a href="/">Accueil</a>
+      <a href="/menu.html">Menu</a>
+      <a href="/evenements.html" class="active">Événements</a>
+      <a href="/galerie.html">Galerie</a>
+      <a href="/contact.html">Contact</a>
+      <a href="/commander.html" class="nav-cta">Commander</a>
+    </div>
+  </nav>
+</header>
+
+<section class="hero" style="padding-bottom:40px;">
+  <div class="container" style="text-align:center;">
+    <span class="tagline">Mariages · Baptêmes · Cérémonies familiales</span>
+    <h1>Nous cuisinons pour vos grands événements</h1>
+    <p class="lead" style="margin:0 auto;">Que ce soit pour 20 ou 200 convives, Saveurs Alamiines prépare des plats généreux et authentiques pour sublimer vos moments importants. Parlez-nous de votre événement, on s'occupe du reste.</p>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="section-title">
+      <span class="eyebrow">Nos prestations</span>
+      <h2>Une cuisine sur-mesure pour votre événement</h2>
+    </div>
+    <div class="grid">
+      <div class="card"><div class="card-body">
+        <h3>💍 Mariages</h3>
+        <p class="desc">Menus copieux et raffinés pour régaler tous vos invités, du plat principal aux beignets pour le buffet sucré-salé.</p>
+      </div></div>
+      <div class="card"><div class="card-body">
+        <h3>🍼 Baptêmes &amp; cérémonies familiales</h3>
+        <p class="desc">Plateaux et box à partager, formats adaptés au nombre de convives.</p>
+      </div></div>
+      <div class="card"><div class="card-body">
+        <h3>🎉 Autres événements</h3>
+        <p class="desc">Anniversaires, réunions familiales ou entre amis, associations : dites-nous ce qu'il vous faut.</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section style="background: var(--cream-deep);">
+  <div class="container" style="max-width:720px;">
+    <div class="section-title">
+      <span class="eyebrow">Demande de devis</span>
+      <h2>Parlez-nous de votre événement</h2>
+      <p>Remplissez ce formulaire, nous vous recontactons pour construire ensemble votre menu et votre devis.</p>
+    </div>
+
+    <form class="form-card" id="event-form">
+      <div class="form-grid-2">
+        <div class="form-row">
+          <label for="nom">Nom *</label>
+          <input type="text" id="nom" required>
+        </div>
+        <div class="form-row">
+          <label for="prenom">Prénom</label>
+          <input type="text" id="prenom">
+        </div>
+      </div>
+      <div class="form-row">
+        <label for="telephone">Numéro de téléphone *</label>
+        <input type="tel" id="telephone" required placeholder="06 12 34 56 78">
+      </div>
+      <div class="form-grid-2">
+        <div class="form-row">
+          <label for="eventType">Type d'événement *</label>
+          <select id="eventType" required>
+            <option value="">Choisir...</option>
+            <option value="Mariage">Mariage</option>
+            <option value="Baptême">Baptême</option>
+            <option value="Cérémonie familiale">Cérémonie familiale</option>
+            <option value="Anniversaire">Anniversaire</option>
+            <option value="Autre">Autre</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="eventDate">Date souhaitée *</label>
+          <input type="date" id="eventDate" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <label for="eventGuests">Nombre de convives (approximatif)</label>
+        <input type="number" id="eventGuests" min="1" placeholder="Ex : 50">
+      </div>
+      <div class="form-row">
+        <label for="notes">Votre message</label>
+        <textarea id="notes" rows="3" placeholder="Envies de menu, lieu, contraintes particulières..."></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">Envoyer ma demande</button>
+      <div id="event-msg"></div>
+    </form>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <h4>Saveurs Alamiines</h4>
+      <p>Spécialités africaines faites maison, à Marseille.</p>
+    </div>
+    <div>
+      <h4>Liens</h4>
+      <a href="/menu.html">Notre menu</a>
+      <a href="/commander.html">Commander</a>
+      <a href="/evenements.html">Traiteur événements</a>
+      <a href="/galerie.html">Galerie</a>
+    </div>
+    <div>
+      <h4>Contact</h4>
+      <a href="tel:+33753966207">📞 +33 7 53 96 62 07</a>
+      <a href="https://wa.me/33753966207" target="_blank" rel="noopener">💬 WhatsApp</a>
+      <a href="/contact.html">📍 Marseille</a>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    © <span id="year"></span> Saveurs Al Amine  Fait maison, fait avec amour.
+  </div>
+</footer>
+<a class="whatsapp-fab" href="https://wa.me/33753966207" target="_blank" rel="noopener" aria-label="WhatsApp">💬</a>
+<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+<script src="/js/nav.js"></script>
+<script src="/js/api.js"></script>
+<script>
+document.getElementById("event-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const msgEl = document.getElementById("event-msg");
+  msgEl.className = "form-msg";
+  msgEl.textContent = "";
+
+  const payload = {
+    type: "evenement",
+    nom: document.getElementById("nom").value.trim(),
+    prenom: document.getElementById("prenom").value.trim(),
+    telephone: document.getElementById("telephone").value.trim(),
+    eventType: document.getElementById("eventType").value,
+    eventDate: document.getElementById("eventDate").value,
+    eventGuests: document.getElementById("eventGuests").value,
+    notes: document.getElementById("notes").value.trim()
+  };
+
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Envoi en cours...";
+
+  try {
+    await submitOrder(payload);
+    e.target.innerHTML = `
+      <h3>Merci ${payload.prenom || payload.nom} ! 🎉</h3>
+      <p>Votre demande a bien été reçue. Nous vous recontactons rapidement au ${payload.telephone} pour discuter de votre événement.</p>
+    `;
+  } catch (err) {
+    msgEl.className = "form-msg error";
+    msgEl.textContent = err.message || "Une erreur est survenue. Merci de réessayer ou de nous appeler.";
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Envoyer ma demande";
+  }
+});
+</script>
+</body>
+</html>

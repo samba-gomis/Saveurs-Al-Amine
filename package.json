@@ -1,0 +1,9 @@
+{
+  "name": "saveurs-alamiines-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Site vitrine et commande en ligne pour Saveurs Alamiines (Marseille)",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}

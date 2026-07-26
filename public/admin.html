@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Espace gérant — Saveurs Al Amine</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/images/logo.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="nav">
+    <a href="/" class="nav-brand"><img src="/images/logo.jpg" alt="Saveurs Al Amine"> Saveurs Al Amine</a>
+    <div class="nav-links">
+      <a href="/">Retour au site</a>
+    </div>
+  </nav>
+</header>
+
+<div id="gate" class="admin-gate">
+  <h2>Espace gérant</h2>
+  <p style="color:#6b5f4d; margin-bottom:20px;">Entrez votre mot de passe pour accéder à la gestion du menu et des commandes.</p>
+  <div class="form-row">
+    <input type="password" id="pwd-input" placeholder="Mot de passe">
+  </div>
+  <button class="btn btn-primary" style="width:100%; justify-content:center;" id="pwd-submit">Se connecter</button>
+  <div id="pwd-msg" class="form-msg" style="display:none;"></div>
+</div>
+
+<section id="admin-content" style="display:none; padding-top:30px;">
+  <div class="container">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
+      <h1 style="margin:0;">Espace gérant</h1>
+      <button class="btn btn-outline btn-small" id="logout-btn">Se déconnecter</button>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="commandes">📋 Commandes</button>
+      <button class="tab-btn" data-tab="menu">🍲 Gestion du menu</button>
+    </div>
+
+    <!-- COMMANDES TAB -->
+    <div class="tab-panel active" id="tab-commandes">
+      <div class="stat-row">
+        <div class="stat-box"><div class="num" id="stat-total">0</div><div class="label">Commandes reçues</div></div>
+        <div class="stat-box"><div class="num" id="stat-nouvelles">0</div><div class="label">Nouvelles</div></div>
+        <div class="stat-box"><div class="num" id="stat-livraison">0</div><div class="label">Livraisons</div></div>
+        <div class="stat-box"><div class="num" id="stat-retrait">0</div><div class="label">Retraits</div></div>
+        <div class="stat-box"><div class="num" id="stat-evenements">0</div><div class="label">Demandes événement</div></div>
+      </div>
+      <div style="margin-bottom:16px; display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn btn-outline btn-small" id="refresh-orders">🔄 Actualiser</button>
+        <button class="btn btn-outline btn-small" id="export-csv">⬇️ Exporter en CSV</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Type</th>
+              <th>Client</th>
+              <th>Téléphone</th>
+              <th>Mode / Événement</th>
+              <th>Détail</th>
+              <th>Total</th>
+              <th>Statut</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="orders-tbody">
+            <tr><td colspan="9" class="loading-text">Chargement...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- MENU TAB -->
+    <div class="tab-panel" id="tab-menu">
+      <div class="admin-menu-form">
+        <h3 id="form-title">Ajouter un article au menu</h3>
+        <form id="item-form">
+          <input type="hidden" id="item-id">
+          <div class="form-grid-2">
+            <div class="form-row">
+              <label for="item-name">Nom du plat *</label>
+              <input type="text" id="item-name" required>
+            </div>
+            <div class="form-row">
+              <label for="item-category">Catégorie *</label>
+              <input type="text" id="item-category" list="category-list" required placeholder="Ex : Plats traditionnels">
+              <datalist id="category-list"></datalist>
+            </div>
+          </div>
+          <div class="form-row">
+            <label for="item-desc">Description</label>
+            <textarea id="item-desc" rows="2"></textarea>
+          </div>
+          <div class="form-grid-2">
+            <div class="form-row">
+              <label for="item-price">Prix (nombre, pour le calcul du panier) *</label>
+              <input type="number" id="item-price" step="0.01" min="0" required placeholder="Ex : 10">
+            </div>
+            <div class="form-row">
+              <label for="item-price-label">Texte du prix affiché (optionnel)</label>
+              <input type="text" id="item-price-label" placeholder="Ex : 10€ la barquette">
+            </div>
+          </div>
+          <div class="form-row">
+            <label for="item-image">Photo du plat</label>
+            <input type="file" id="item-image" accept="image/*">
+            <p class="helper-text">L'image sera automatiquement redimensionnée.</p>
+            <img id="image-preview" class="image-preview">
+          </div>
+          <div class="form-row">
+            <label><input type="checkbox" id="item-available" checked style="width:auto;"> Disponible à la commande</label>
+          </div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button type="submit" class="btn btn-primary" id="item-submit">Ajouter au menu</button>
+            <button type="button" class="btn btn-outline" id="item-cancel" style="display:none;">Annuler la modification</button>
+          </div>
+          <div id="item-msg"></div>
+        </form>
+      </div>
+
+      <div id="items-list"></div>
+    </div>
+  </div>
+</section>
+
+<script src="/js/api.js"></script>
+<script>
+const gate = document.getElementById("gate");
+const adminContent = document.getElementById("admin-content");
+
+function tryEnter() {
+  const pwd = sessionStorage.getItem("sa_admin_pwd");
+  if (pwd) {
+    gate.style.display = "none";
+    adminContent.style.display = "block";
+    loadOrders();
+    loadItems();
+  }
+}
+
+document.getElementById("pwd-submit").addEventListener("click", async () => {
+  const pwd = document.getElementById("pwd-input").value;
+  sessionStorage.setItem("sa_admin_pwd", pwd);
+  const res = await fetch(API.orders, { headers: adminHeaders() });
+  if (res.ok) {
+    tryEnter();
+  } else {
+    sessionStorage.removeItem("sa_admin_pwd");
+    const msg = document.getElementById("pwd-msg");
+    msg.style.display = "block";
+    msg.className = "form-msg error";
+    msg.textContent = "Mot de passe incorrect.";
+  }
+});
+
+document.getElementById("logout-btn").addEventListener("click", () => {
+  sessionStorage.removeItem("sa_admin_pwd");
+  location.reload();
+});
+
+document.querySelectorAll(".tab-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+    document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+  });
+});
+
+// ---------- ORDERS ----------
+let allOrders = [];
+
+async function loadOrders() {
+  const tbody = document.getElementById("orders-tbody");
+  tbody.innerHTML = '<tr><td colspan="9" class="loading-text">Chargement...</td></tr>';
+  try {
+    const res = await fetch(API.orders, { headers: adminHeaders() });
+    allOrders = await res.json();
+  } catch (e) {
+    tbody.innerHTML = '<tr><td colspan="9" class="loading-text">Erreur de chargement.</td></tr>';
+    return;
+  }
+  renderOrders();
+  renderStats();
+}
+
+function renderStats() {
+  document.getElementById("stat-total").textContent = allOrders.length;
+  document.getElementById("stat-nouvelles").textContent = allOrders.filter((o) => o.status === "nouvelle").length;
+  document.getElementById("stat-livraison").textContent = allOrders.filter((o) => o.mode === "livraison").length;
+  document.getElementById("stat-retrait").textContent = allOrders.filter((o) => o.mode === "retrait").length;
+  document.getElementById("stat-evenements").textContent = allOrders.filter((o) => o.type === "evenement").length;
+}
+
+function renderOrders() {
+  const tbody = document.getElementById("orders-tbody");
+  if (allOrders.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" class="loading-text">Aucune commande pour le moment.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = "";
+  allOrders.forEach((o) => {
+    const tr = document.createElement("tr");
+    const date = new Date(o.createdAt).toLocaleString("fr-FR");
+    const detail = o.type === "evenement"
+      ? `${o.eventType} — ${o.eventGuests || "?"} pers.${o.notes ? " — " + o.notes : ""}`
+      : (o.items || []).map((i) => `${i.qty}x ${i.name}`).join(", ") + (o.notes ? " — " + o.notes : "");
+    const modeDisplay = o.type === "evenement"
+      ? `📅 ${o.eventDate || "?"}`
+      : (o.mode === "livraison" ? `🚗 Livraison<br><span style="font-size:0.8em;">${o.adresse || ""}</span>` : "🏠 Retrait");
+
+    tr.innerHTML = `
+      <td>${date}</td>
+      <td>${o.type === "evenement" ? "Événement" : "Commande"}</td>
+      <td>${o.prenom || ""} ${o.nom}</td>
+      <td><a href="tel:${o.telephone}">${o.telephone}</a></td>
+      <td>${modeDisplay}</td>
+      <td>${detail}</td>
+      <td>${o.total || ""}</td>
+      <td>
+        <select class="status-select" data-id="${o.id}">
+          <option value="nouvelle" ${o.status === "nouvelle" ? "selected" : ""}>Nouvelle</option>
+          <option value="en cours" ${o.status === "en cours" ? "selected" : ""}>En cours</option>
+          <option value="traitee" ${o.status === "traitee" ? "selected" : ""}>Traitée</option>
+        </select>
+      </td>
+      <td><button class="btn btn-danger btn-small" data-id="${o.id}">Suppr.</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  tbody.querySelectorAll(".status-select").forEach((sel) => {
+    sel.addEventListener("change", async () => {
+      await fetch(API.orders, {
+        method: "PATCH",
+        headers: adminHeaders(),
+        body: JSON.stringify({ id: sel.dataset.id, status: sel.value })
+      });
+      const o = allOrders.find((x) => x.id === sel.dataset.id);
+      if (o) o.status = sel.value;
+      renderStats();
+    });
+  });
+
+  tbody.querySelectorAll(".btn-danger").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      if (!confirm("Supprimer cette commande ?")) return;
+      await fetch(API.orders + "?id=" + encodeURIComponent(btn.dataset.id), {
+        method: "DELETE",
+        headers: adminHeaders()
+      });
+      loadOrders();
+    });
+  });
+}
+
+document.getElementById("refresh-orders").addEventListener("click", loadOrders);
+
+document.getElementById("export-csv").addEventListener("click", () => {
+  if (allOrders.length === 0) return;
+  const rows = [["Date", "Type", "Nom", "Prenom", "Telephone", "Mode", "Adresse", "Detail", "Total", "Statut"]];
+  allOrders.forEach((o) => {
+    const detail = o.type === "evenement"
+      ? `${o.eventType} - ${o.eventDate} - ${o.eventGuests || "?"} pers.`
+      : (o.items || []).map((i) => `${i.qty}x ${i.name}`).join(" / ");
+    rows.push([
+      new Date(o.createdAt).toLocaleString("fr-FR"),
+      o.type, o.nom, o.prenom, o.telephone, o.mode, o.adresse, detail, o.total, o.status
+    ]);
+  });
+  const csv = rows.map((r) => r.map((c) => `"${String(c || "").replace(/"/g, '""')}"`).join(",")).join("\n");
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "commandes-saveurs-alamiines.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+// ---------- MENU ITEMS ----------
+let allItems = [];
+
+async function loadItems() {
+  try {
+    allItems = await fetchMenu();
+  } catch (e) {
+    allItems = [];
+  }
+  renderCategoryList();
+  renderItemsList();
+}
+
+function renderCategoryList() {
+  const dl = document.getElementById("category-list");
+  const cats = [...new Set(allItems.map((i) => i.category))];
+  dl.innerHTML = cats.map((c) => `<option value="${c}">`).join("");
+}
+
+function renderItemsList() {
+  const container = document.getElementById("items-list");
+  container.innerHTML = "";
+  const cats = [...new Set(allItems.map((i) => i.category))];
+  cats.forEach((cat) => {
+    const title = document.createElement("div");
+    title.className = "category-title";
+    title.innerHTML = `<h2>${cat}</h2>`;
+    container.appendChild(title);
+
+    allItems.filter((i) => i.category === cat).forEach((item) => {
+      const row = document.createElement("div");
+      row.className = "admin-item-row";
+      row.innerHTML = `
+        <img src="${item.image || '/images/logo.jpg'}" alt="${item.name}">
+        <div class="info">
+          <strong>${item.name}</strong> ${!item.available ? '<span class="badge-unavailable">Indisponible</span>' : ""}<br>
+          <span style="color:#6b5f4d; font-size:0.85rem;">${item.priceLabel || item.price + "€"}</span>
+        </div>
+        <div class="actions">
+          <button class="btn btn-outline btn-small" data-action="edit" data-id="${item.id}">Modifier</button>
+          <button class="btn btn-outline btn-small" data-action="toggle" data-id="${item.id}">${item.available ? "Marquer indispo" : "Marquer dispo"}</button>
+          <button class="btn btn-danger btn-small" data-action="delete" data-id="${item.id}">Supprimer</button>
+        </div>
+      `;
+      container.appendChild(row);
+    });
+  });
+
+  container.querySelectorAll('[data-action="edit"]').forEach((btn) => {
+    btn.addEventListener("click", () => startEdit(btn.dataset.id));
+  });
+  container.querySelectorAll('[data-action="toggle"]').forEach((btn) => {
+    btn.addEventListener("click", () => toggleAvailable(btn.dataset.id));
+  });
+  container.querySelectorAll('[data-action="delete"]').forEach((btn) => {
+    btn.addEventListener("click", () => deleteItem(btn.dataset.id));
+  });
+}
+
+function startEdit(id) {
+  const item = allItems.find((i) => i.id === id);
+  if (!item) return;
+  document.getElementById("form-title").textContent = "Modifier : " + item.name;
+  document.getElementById("item-id").value = item.id;
+  document.getElementById("item-name").value = item.name;
+  document.getElementById("item-category").value = item.category;
+  document.getElementById("item-desc").value = item.description || "";
+  document.getElementById("item-price").value = item.price;
+  document.getElementById("item-price-label").value = item.priceLabel || "";
+  document.getElementById("item-available").checked = item.available;
+  const preview = document.getElementById("image-preview");
+  preview.src = item.image || "";
+  preview.style.display = item.image ? "block" : "none";
+  preview.dataset.value = item.image || "";
+  document.getElementById("item-submit").textContent = "Enregistrer les modifications";
+  document.getElementById("item-cancel").style.display = "inline-flex";
+  document.querySelector('.tab-btn[data-tab="menu"]').click();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+document.getElementById("item-cancel").addEventListener("click", resetForm);
+
+function resetForm() {
+  document.getElementById("item-form").reset();
+  document.getElementById("item-id").value = "";
+  document.getElementById("form-title").textContent = "Ajouter un article au menu";
+  document.getElementById("item-submit").textContent = "Ajouter au menu";
+  document.getElementById("item-cancel").style.display = "none";
+  const preview = document.getElementById("image-preview");
+  preview.style.display = "none";
+  preview.src = "";
+  preview.dataset.value = "";
+}
+
+async function toggleAvailable(id) {
+  const item = allItems.find((i) => i.id === id);
+  if (!item) return;
+  await fetch(API.menu, {
+    method: "PUT",
+    headers: adminHeaders(),
+    body: JSON.stringify({ id: item.id, available: !item.available })
+  });
+  loadItems();
+}
+
+async function deleteItem(id) {
+  if (!confirm("Supprimer cet article du menu ?")) return;
+  await fetch(API.menu + "?id=" + encodeURIComponent(id), { method: "DELETE", headers: adminHeaders() });
+  loadItems();
+}
+
+document.getElementById("item-image").addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const img = new Image();
+    img.onload = () => {
+      const maxWidth = 900;
+      const scale = Math.min(1, maxWidth / img.width);
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.72);
+      const preview = document.getElementById("image-preview");
+      preview.src = dataUrl;
+      preview.dataset.value = dataUrl;
+      preview.style.display = "block";
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+document.getElementById("item-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const msgEl = document.getElementById("item-msg");
+  msgEl.className = "form-msg";
+  msgEl.textContent = "";
+
+  const id = document.getElementById("item-id").value;
+  const preview = document.getElementById("image-preview");
+  const existing = id ? allItems.find((i) => i.id === id) : null;
+
+  const payload = {
+    name: document.getElementById("item-name").value.trim(),
+    category: document.getElementById("item-category").value.trim(),
+    description: document.getElementById("item-desc").value.trim(),
+    price: Number(document.getElementById("item-price").value),
+    priceLabel: document.getElementById("item-price-label").value.trim(),
+    available: document.getElementById("item-available").checked,
+    image: preview.dataset.value || (existing ? existing.image : "")
+  };
+
+  try {
+    if (id) {
+      payload.id = id;
+      const res = await fetch(API.menu, { method: "PUT", headers: adminHeaders(), body: JSON.stringify(payload) });
+      if (!res.ok) throw new Error((await res.json()).error);
+    } else {
+      const res = await fetch(API.menu, { method: "POST", headers: adminHeaders(), body: JSON.stringify(payload) });
+      if (!res.ok) throw new Error((await res.json()).error);
+    }
+    resetForm();
+    loadItems();
+    msgEl.className = "form-msg success";
+    msgEl.textContent = "Enregistré avec succès.";
+  } catch (err) {
+    msgEl.className = "form-msg error";
+    msgEl.textContent = err.message || "Erreur lors de l'enregistrement.";
+  }
+});
+
+tryEnter();
+</script>
+</body>
+</html>

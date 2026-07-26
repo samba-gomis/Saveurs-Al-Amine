@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notre Menu — Saveurs Al Amine</title>
+<meta name="description" content="La carte complète de Saveurs Al Amine : plats traditionnels, grillades, beignets et jus faits maison. Ajoutez vos plats et commandez en ligne.">
+<link rel="icon" href="/images/logo.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="nav">
+    <a href="/" class="nav-brand"><img src="/images/logo.jpg" alt="Saveurs Al Amine"> Saveurs Al Amine</a>
+    <button class="nav-toggle" aria-label="Menu">☰</button>
+    <div class="nav-links">
+      <a href="/">Accueil</a>
+      <a href="/menu.html" class="active">Menu</a>
+      <a href="/evenements.html">Événements</a>
+      <a href="/galerie.html">Galerie</a>
+      <a href="/contact.html">Contact</a>
+      <a href="/commander.html" class="nav-cta">Commander</a>
+    </div>
+  </nav>
+</header>
+
+<section style="padding-bottom:0;">
+  <div class="container section-title">
+    <span class="eyebrow">La carte</span>
+    <h1>Notre menu</h1>
+    <p>Ajoutez les plats de votre choix, puis validez votre commande. Vous pourrez choisir livraison ou retrait à l'étape suivante.</p>
+  </div>
+</section>
+
+<section style="padding-top:20px;">
+  <div class="container" id="menu-container">
+    <p class="loading-text">Chargement du menu...</p>
+  </div>
+</section>
+
+<div class="cart-bar" id="cart-bar">
+  <span>🛒 <span id="cart-bar-count">0</span> article(s) — <span id="cart-bar-total">0,00 €</span></span>
+  <a href="/commander.html" class="btn btn-primary btn-small">Valider ma commande</a>
+</div>
+
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <h4>Saveurs Al Amine</h4>
+      <p>Spécialités africaines faites maison, à Marseille.</p>
+    </div>
+    <div>
+      <h4>Liens</h4>
+      <a href="/menu.html">Notre menu</a>
+      <a href="/commander.html">Commander</a>
+      <a href="/evenements.html">Traiteur événements</a>
+      <a href="/galerie.html">Galerie</a>
+    </div>
+    <div>
+      <h4>Contact</h4>
+      <a href="tel:+33753966207">📞 +33 7 53 96 62 07</a>
+      <a href="https://wa.me/33753966207" target="_blank" rel="noopener">💬 WhatsApp</a>
+      <a href="/contact.html">📍 Marseille</a>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    © <span id="year"></span> Saveurs Al Amine  Fait maison, fait avec amour.
+  </div>
+</footer>
+<a class="whatsapp-fab" href="https://wa.me/33753966207" target="_blank" rel="noopener" aria-label="WhatsApp">💬</a>
+<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+<script src="/js/nav.js"></script>
+<script src="/js/cart.js"></script>
+<script src="/js/api.js"></script>
+<script>
+async function renderMenu() {
+  const container = document.getElementById("menu-container");
+  let items;
+  try {
+    items = await fetchMenu();
+  } catch (e) {
+    container.innerHTML = '<p class="loading-text">Le menu est momentanément indisponible. Contactez-nous au 07 53 96 62 07.</p>';
+    return;
+  }
+
+  const categories = [];
+  items.forEach((it) => { if (!categories.includes(it.category)) categories.push(it.category); });
+
+  container.innerHTML = "";
+  categories.forEach((cat) => {
+    const catItems = items.filter((it) => it.category === cat);
+    const catTitle = document.createElement("div");
+    catTitle.className = "category-title";
+    catTitle.innerHTML = `<h2>${cat}</h2>`;
+    container.appendChild(catTitle);
+
+    const grid = document.createElement("div");
+    grid.className = "grid";
+
+    catItems.forEach((item) => {
+      const card = document.createElement("div");
+      card.className = "card";
+      const cart = getCart();
+      const inCart = cart.find((l) => l.id === item.id);
+      const qty = inCart ? inCart.qty : 0;
+
+      card.innerHTML = `
+        <div class="card-img"><img src="${item.image || '/images/logo.jpg'}" alt="${item.name}" loading="lazy"></div>
+        <div class="card-body">
+          ${!item.available ? '<span class="badge-unavailable">Indisponible</span>' : ""}
+          <h3>${item.name}</h3>
+          ${item.description ? `<p class="desc">${item.description}</p>` : '<p class="desc"></p>'}
+          <div class="card-footer">
+            <span class="price-tag">${item.priceLabel || (item.price + " €")}</span>
+            ${item.available ? `
+            <div class="qty-control" data-id="${item.id}">
+              <button class="qty-minus" aria-label="Retirer">−</button>
+              <span class="qty-value">${qty}</span>
+              <button class="qty-plus" aria-label="Ajouter">+</button>
+            </div>` : ""}
+          </div>
+        </div>
+      `;
+      grid.appendChild(card);
+
+      if (item.available) {
+        const minus = card.querySelector(".qty-minus");
+        const plus = card.querySelector(".qty-plus");
+        const valueEl = card.querySelector(".qty-value");
+
+        plus.addEventListener("click", () => {
+          addToCart(item, 1);
+          valueEl.textContent = Number(valueEl.textContent) + 1;
+          updateCartBar();
+        });
+        minus.addEventListener("click", () => {
+          const current = Number(valueEl.textContent);
+          if (current <= 0) return;
+          setQty(item.id, current - 1);
+          valueEl.textContent = current - 1;
+          updateCartBar();
+        });
+      }
+    });
+
+    container.appendChild(grid);
+  });
+
+  updateCartBar();
+}
+
+renderMenu();
+</script>
+</body>
+</html>

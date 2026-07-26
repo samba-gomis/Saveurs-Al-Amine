@@ -1,0 +1,37 @@
+[build]
+  publish = "public"
+  command = "npm install"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/menu"
+  to = "/menu.html"
+  status = 200
+
+[[redirects]]
+  from = "/commander"
+  to = "/commander.html"
+  status = 200
+
+[[redirects]]
+  from = "/evenements"
+  to = "/evenements.html"
+  status = 200
+
+[[redirects]]
+  from = "/galerie"
+  to = "/galerie.html"
+  status = 200
+
+[[redirects]]
+  from = "/contact"
+  to = "/contact.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin"
+  to = "/admin.html"
+  status = 200

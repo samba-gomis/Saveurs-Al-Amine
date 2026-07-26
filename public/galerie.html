@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Galerie — Saveurs Al Amine</title>
+<meta name="description" content="Découvrez en images les plats de Saveurs Al Amine : thiébou, brochettes, beignets, jus faits maison.">
+<link rel="icon" href="/images/logo.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <nav class="nav">
+    <a href="/" class="nav-brand"><img src="/images/logo.jpg" alt="Saveurs Al Amine"> Saveurs Al Amine</a>
+    <button class="nav-toggle" aria-label="Menu">☰</button>
+    <div class="nav-links">
+      <a href="/">Accueil</a>
+      <a href="/menu.html">Menu</a>
+      <a href="/evenements.html">Événements</a>
+      <a href="/galerie.html" class="active">Galerie</a>
+      <a href="/contact.html">Contact</a>
+      <a href="/commander.html" class="nav-cta">Commander</a>
+    </div>
+  </nav>
+</header>
+
+<section>
+  <div class="container section-title">
+    <span class="eyebrow">En images</span>
+    <h1>Notre galerie</h1>
+    <p>Un aperçu de nos plats préparés avec amour, à retrouver sur notre carte.</p>
+  </div>
+  <div class="container gallery-grid">
+    <img src="/images/flyer-diaga-national.jpg" alt="Thiébou Diaga National">
+    <img src="/images/flyer-diaga-yassa.jpg" alt="Thiébou Diaga et Yassa">
+    <img src="/images/flyer-thiou.jpg" alt="Thiou Diw Tir">
+    <img src="/images/flyer-sauce-kandia-niebe.jpg" alt="Soupou Kandia et Thiébou Niébé">
+    <img src="/images/flyer-vermicelle.jpg" alt="Vermicelle Royal">
+    <img src="/images/flyer-yapeu-royal.jpg" alt="Thiébou Yapeu Royal">
+    <img src="/images/flyer-brochettes.jpg" alt="Brochettes veau et foie d'agneau">
+    <img src="/images/flyer-box-plateau.jpg" alt="Box et plateau Alamine">
+    <img src="/images/flyer-beignets.jpg" alt="Nos beignets">
+    <img src="/images/flyer-jus.jpg" alt="Jus Alamine">
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <h4>Saveurs Al Amine</h4>
+      <p>Spécialités africaines faites maison, à Marseille.</p>
+    </div>
+    <div>
+      <h4>Liens</h4>
+      <a href="/menu.html">Notre menu</a>
+      <a href="/commander.html">Commander</a>
+      <a href="/evenements.html">Traiteur événements</a>
+      <a href="/galerie.html">Galerie</a>
+    </div>
+    <div>
+      <h4>Contact</h4>
+      <a href="tel:+33753966207">📞 +33 7 53 96 62 07</a>
+      <a href="https://wa.me/33753966207" target="_blank" rel="noopener">💬 WhatsApp</a>
+      <a href="/contact.html">📍 Marseille</a>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    © <span id="year"></span> Saveurs Al Amine  Fait maison, fait avec amour.
+  </div>
+</footer>
+<a class="whatsapp-fab" href="https://wa.me/33753966207" target="_blank" rel="noopener" aria-label="WhatsApp">💬</a>
+<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+<script src="/js/nav.js"></script>
+</body>
+</html>
