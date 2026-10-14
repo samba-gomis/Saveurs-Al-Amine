@@ -15,21 +15,21 @@
 <header class="site-header">
   <nav class="nav">
     <a href="/" class="nav-brand"><img src="/images/logo.jpg" alt="Saveurs Al Amine"> Saveurs Al Amine</a>
-    <div class="nav-links">
+    <div class="nav-links" style="display:flex;">
       <a href="/">Retour au site</a>
     </div>
   </nav>
 </header>
 
-<div id="gate" class="admin-gate">
+<form id="gate" class="admin-gate">
   <h2>Espace gérant</h2>
   <p style="color:#6b5f4d; margin-bottom:20px;">Entrez votre mot de passe pour accéder à la gestion du menu et des commandes.</p>
   <div class="form-row">
-    <input type="password" id="pwd-input" placeholder="Mot de passe">
+    <input type="password" id="pwd-input" placeholder="Mot de passe" autocomplete="current-password" required>
   </div>
-  <button class="btn btn-primary" style="width:100%; justify-content:center;" id="pwd-submit">Se connecter</button>
+  <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;" id="pwd-submit">Se connecter</button>
   <div id="pwd-msg" class="form-msg" style="display:none;"></div>
-</div>
+</form>
 
 <section id="admin-content" style="display:none; padding-top:30px;">
   <div class="container">
@@ -146,18 +146,33 @@ function tryEnter() {
   }
 }
 
-document.getElementById("pwd-submit").addEventListener("click", async () => {
-  const pwd = document.getElementById("pwd-input").value;
-  sessionStorage.setItem("sa_admin_pwd", pwd);
-  const res = await fetch(API.orders, { headers: adminHeaders() });
-  if (res.ok) {
+function showGate(message) {
+  sessionStorage.removeItem("sa_admin_pwd");
+  adminContent.style.display = "none";
+  gate.style.display = "block";
+  const msg = document.getElementById("pwd-msg");
+  msg.style.display = "block";
+  msg.className = "form-msg error";
+  msg.textContent = message;
+}
+
+// Toutes les requêtes gérant passent par ici : un mot de passe refusé (changé entre-temps,
+// session d'un autre jour...) renvoie à l'écran de connexion au lieu de laisser la page bloquée.
+async function adminFetch(url, options = {}) {
+  const res = await fetch(url, { ...options, headers: adminHeaders() });
+  if (res.status === 401) showGate("Mot de passe incorrect ou modifié. Reconnectez-vous.");
+  return readJsonResponse(res, "Erreur du serveur, réessayez dans un instant.");
+}
+
+gate.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  sessionStorage.setItem("sa_admin_pwd", document.getElementById("pwd-input").value);
+  try {
+    await adminFetch(API.orders);
+    document.getElementById("pwd-msg").style.display = "none";
     tryEnter();
-  } else {
-    sessionStorage.removeItem("sa_admin_pwd");
-    const msg = document.getElementById("pwd-msg");
-    msg.style.display = "block";
-    msg.className = "form-msg error";
-    msg.textContent = "Mot de passe incorrect.";
+  } catch (err) {
+    showGate(err.message);
   }
 });
 
@@ -182,10 +197,9 @@ async function loadOrders() {
   const tbody = document.getElementById("orders-tbody");
   tbody.innerHTML = '<tr><td colspan="9" class="loading-text">Chargement...</td></tr>';
   try {
-    const res = await fetch(API.orders, { headers: adminHeaders() });
-    allOrders = await res.json();
+    allOrders = await adminFetch(API.orders);
   } catch (e) {
-    tbody.innerHTML = '<tr><td colspan="9" class="loading-text">Erreur de chargement.</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="9" class="loading-text">Erreur de chargement : ${escapeHtml(e.message)}</td></tr>`;
     return;
   }
   renderOrders();
@@ -214,50 +228,55 @@ function renderOrders() {
       ? `${o.eventType} — ${o.eventGuests || "?"} pers.${o.notes ? " — " + o.notes : ""}`
       : (o.items || []).map((i) => `${i.qty}x ${i.name}`).join(", ") + (o.notes ? " — " + o.notes : "");
     const modeDisplay = o.type === "evenement"
-      ? `📅 ${o.eventDate || "?"}`
-      : (o.mode === "livraison" ? `🚗 Livraison<br><span style="font-size:0.8em;">${o.adresse || ""}</span>` : "🏠 Retrait");
+      ? `📅 ${escapeHtml(o.eventDate || "?")}`
+      : (o.mode === "livraison" ? `🚗 Livraison<br><span style="font-size:0.8em;">${escapeHtml(o.adresse)}</span>` : "🏠 Retrait");
 
     tr.innerHTML = `
       <td>${date}</td>
       <td>${o.type === "evenement" ? "Événement" : "Commande"}</td>
-      <td>${o.prenom || ""} ${o.nom}</td>
-      <td><a href="tel:${o.telephone}">${o.telephone}</a></td>
+      <td>${escapeHtml(o.prenom)} ${escapeHtml(o.nom)}</td>
+      <td><a href="tel:${escapeHtml(o.telephone)}">${escapeHtml(o.telephone)}</a></td>
       <td>${modeDisplay}</td>
-      <td>${detail}</td>
-      <td>${o.total || ""}</td>
+      <td>${escapeHtml(detail)}</td>
+      <td>${escapeHtml(o.total)}</td>
       <td>
-        <select class="status-select" data-id="${o.id}">
+        <select class="status-select" data-id="${escapeHtml(o.id)}">
           <option value="nouvelle" ${o.status === "nouvelle" ? "selected" : ""}>Nouvelle</option>
           <option value="en cours" ${o.status === "en cours" ? "selected" : ""}>En cours</option>
           <option value="traitee" ${o.status === "traitee" ? "selected" : ""}>Traitée</option>
         </select>
       </td>
-      <td><button class="btn btn-danger btn-small" data-id="${o.id}">Suppr.</button></td>
+      <td><button class="btn btn-danger btn-small" data-id="${escapeHtml(o.id)}">Suppr.</button></td>
     `;
     tbody.appendChild(tr);
   });
 
   tbody.querySelectorAll(".status-select").forEach((sel) => {
     sel.addEventListener("change", async () => {
-      await fetch(API.orders, {
-        method: "PATCH",
-        headers: adminHeaders(),
-        body: JSON.stringify({ id: sel.dataset.id, status: sel.value })
-      });
       const o = allOrders.find((x) => x.id === sel.dataset.id);
-      if (o) o.status = sel.value;
-      renderStats();
+      try {
+        await adminFetch(API.orders, {
+          method: "PATCH",
+          body: JSON.stringify({ id: sel.dataset.id, status: sel.value })
+        });
+        if (o) o.status = sel.value;
+        renderStats();
+      } catch (err) {
+        if (o) sel.value = o.status;
+        alert("Statut non enregistré : " + err.message);
+      }
     });
   });
 
   tbody.querySelectorAll(".btn-danger").forEach((btn) => {
     btn.addEventListener("click", async () => {
       if (!confirm("Supprimer cette commande ?")) return;
-      await fetch(API.orders + "?id=" + encodeURIComponent(btn.dataset.id), {
-        method: "DELETE",
-        headers: adminHeaders()
-      });
-      loadOrders();
+      try {
+        await adminFetch(API.orders + "?id=" + encodeURIComponent(btn.dataset.id), { method: "DELETE" });
+        loadOrders();
+      } catch (err) {
+        alert("Suppression impossible : " + err.message);
+      }
     });
   });
 }
@@ -266,22 +285,28 @@ document.getElementById("refresh-orders").addEventListener("click", loadOrders);
 
 document.getElementById("export-csv").addEventListener("click", () => {
   if (allOrders.length === 0) return;
-  const rows = [["Date", "Type", "Nom", "Prenom", "Telephone", "Mode", "Adresse", "Detail", "Total", "Statut"]];
+  const rows = [["Date", "Type", "Nom", "Prenom", "Telephone", "Mode", "Adresse", "Detail", "Notes", "Total", "Statut"]];
   allOrders.forEach((o) => {
     const detail = o.type === "evenement"
       ? `${o.eventType} - ${o.eventDate} - ${o.eventGuests || "?"} pers.`
       : (o.items || []).map((i) => `${i.qty}x ${i.name}`).join(" / ");
     rows.push([
       new Date(o.createdAt).toLocaleString("fr-FR"),
-      o.type, o.nom, o.prenom, o.telephone, o.mode, o.adresse, detail, o.total, o.status
+      o.type, o.nom, o.prenom, o.telephone, o.mode, o.adresse, detail, o.notes, o.total, o.status
     ]);
   });
-  const csv = rows.map((r) => r.map((c) => `"${String(c || "").replace(/"/g, '""')}"`).join(",")).join("\n");
+  // Excel exécute une cellule commençant par = + - @ comme une formule : on la force en texte.
+  const cell = (c) => {
+    let s = String(c ?? "");
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+    return `"${s.replace(/"/g, '""')}"`;
+  };
+  const csv = rows.map((r) => r.map(cell).join(",")).join("\n");
   const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "commandes-saveurs-alamiines.csv";
+  a.download = "commandes-saveurs-al-amine.csv";
   a.click();
   URL.revokeObjectURL(url);
 });
@@ -302,7 +327,7 @@ async function loadItems() {
 function renderCategoryList() {
   const dl = document.getElementById("category-list");
   const cats = [...new Set(allItems.map((i) => i.category))];
-  dl.innerHTML = cats.map((c) => `<option value="${c}">`).join("");
+  dl.innerHTML = cats.map((c) => `<option value="${escapeHtml(c)}">`).join("");
 }
 
 function renderItemsList() {
@@ -312,22 +337,23 @@ function renderItemsList() {
   cats.forEach((cat) => {
     const title = document.createElement("div");
     title.className = "category-title";
-    title.innerHTML = `<h2>${cat}</h2>`;
+    title.innerHTML = `<h2>${escapeHtml(cat)}</h2>`;
     container.appendChild(title);
 
     allItems.filter((i) => i.category === cat).forEach((item) => {
       const row = document.createElement("div");
       row.className = "admin-item-row";
+      const id = escapeHtml(item.id);
       row.innerHTML = `
-        <img src="${item.image || '/images/logo.jpg'}" alt="${item.name}">
+        <img src="${escapeHtml(item.image || '/images/logo.jpg')}" alt="${escapeHtml(item.name)}">
         <div class="info">
-          <strong>${item.name}</strong> ${!item.available ? '<span class="badge-unavailable">Indisponible</span>' : ""}<br>
-          <span style="color:#6b5f4d; font-size:0.85rem;">${item.priceLabel || item.price + "€"}</span>
+          <strong>${escapeHtml(item.name)}</strong> ${!item.available ? '<span class="badge-unavailable">Indisponible</span>' : ""}<br>
+          <span style="color:#6b5f4d; font-size:0.85rem;">${escapeHtml(item.priceLabel || item.price + "€")}</span>
         </div>
         <div class="actions">
-          <button class="btn btn-outline btn-small" data-action="edit" data-id="${item.id}">Modifier</button>
-          <button class="btn btn-outline btn-small" data-action="toggle" data-id="${item.id}">${item.available ? "Marquer indispo" : "Marquer dispo"}</button>
-          <button class="btn btn-danger btn-small" data-action="delete" data-id="${item.id}">Supprimer</button>
+          <button class="btn btn-outline btn-small" data-action="edit" data-id="${id}">Modifier</button>
+          <button class="btn btn-outline btn-small" data-action="toggle" data-id="${id}">${item.available ? "Marquer indispo" : "Marquer dispo"}</button>
+          <button class="btn btn-danger btn-small" data-action="delete" data-id="${id}">Supprimer</button>
         </div>
       `;
       container.appendChild(row);
@@ -383,17 +409,24 @@ function resetForm() {
 async function toggleAvailable(id) {
   const item = allItems.find((i) => i.id === id);
   if (!item) return;
-  await fetch(API.menu, {
-    method: "PUT",
-    headers: adminHeaders(),
-    body: JSON.stringify({ id: item.id, available: !item.available })
-  });
+  try {
+    await adminFetch(API.menu, {
+      method: "PUT",
+      body: JSON.stringify({ id: item.id, available: !item.available })
+    });
+  } catch (err) {
+    alert("Modification impossible : " + err.message);
+  }
   loadItems();
 }
 
 async function deleteItem(id) {
   if (!confirm("Supprimer cet article du menu ?")) return;
-  await fetch(API.menu + "?id=" + encodeURIComponent(id), { method: "DELETE", headers: adminHeaders() });
+  try {
+    await adminFetch(API.menu + "?id=" + encodeURIComponent(id), { method: "DELETE" });
+  } catch (err) {
+    alert("Suppression impossible : " + err.message);
+  }
   loadItems();
 }
 
@@ -444,11 +477,9 @@ document.getElementById("item-form").addEventListener("submit", async (e) => {
   try {
     if (id) {
       payload.id = id;
-      const res = await fetch(API.menu, { method: "PUT", headers: adminHeaders(), body: JSON.stringify(payload) });
-      if (!res.ok) throw new Error((await res.json()).error);
+      await adminFetch(API.menu, { method: "PUT", body: JSON.stringify(payload) });
     } else {
-      const res = await fetch(API.menu, { method: "POST", headers: adminHeaders(), body: JSON.stringify(payload) });
-      if (!res.ok) throw new Error((await res.json()).error);
+      await adminFetch(API.menu, { method: "POST", body: JSON.stringify(payload) });
     }
     resetForm();
     loadItems();

@@ -31,7 +31,7 @@
   <div class="container" style="text-align:center;">
     <span class="tagline">Mariages · Baptêmes · Cérémonies familiales</span>
     <h1>Nous cuisinons pour vos grands événements</h1>
-    <p class="lead" style="margin:0 auto;">Que ce soit pour 20 ou 200 convives, Saveurs Alamiines prépare des plats généreux et authentiques pour sublimer vos moments importants. Parlez-nous de votre événement, on s'occupe du reste.</p>
+    <p class="lead" style="margin:0 auto;">Que ce soit pour 20 ou 200 convives, Saveurs Al Amine prépare des plats généreux et authentiques pour sublimer vos moments importants. Parlez-nous de votre événement, on s'occupe du reste.</p>
   </div>
 </section>
 
@@ -115,7 +115,7 @@
 <footer class="site-footer">
   <div class="container footer-grid">
     <div>
-      <h4>Saveurs Alamiines</h4>
+      <h4>Saveurs Al Amine</h4>
       <p>Spécialités africaines faites maison, à Marseille.</p>
     </div>
     <div>
@@ -133,7 +133,7 @@
     </div>
   </div>
   <div class="container footer-bottom">
-    © <span id="year"></span> Saveurs Al Amine  Fait maison, fait avec amour.
+    © <span id="year"></span> Saveurs Al Amine — Fait maison, fait avec amour.
   </div>
 </footer>
 <a class="whatsapp-fab" href="https://wa.me/33753966207" target="_blank" rel="noopener" aria-label="WhatsApp">💬</a>
@@ -141,6 +141,10 @@
 <script src="/js/nav.js"></script>
 <script src="/js/api.js"></script>
 <script>
+// Pas de date passée (date locale, pas UTC)
+const today = new Date();
+document.getElementById("eventDate").min = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+
 document.getElementById("event-form").addEventListener("submit", async (e) => {
   e.preventDefault();
   const msgEl = document.getElementById("event-msg");
@@ -165,8 +169,8 @@ document.getElementById("event-form").addEventListener("submit", async (e) => {
   try {
     await submitOrder(payload);
     e.target.innerHTML = `
-      <h3>Merci ${payload.prenom || payload.nom} ! 🎉</h3>
-      <p>Votre demande a bien été reçue. Nous vous recontactons rapidement au ${payload.telephone} pour discuter de votre événement.</p>
+      <h3>Merci ${escapeHtml(payload.prenom || payload.nom)} ! 🎉</h3>
+      <p>Votre demande a bien été reçue. Nous vous recontactons rapidement au ${escapeHtml(payload.telephone)} pour discuter de votre événement.</p>
     `;
   } catch (err) {
     msgEl.className = "form-msg error";

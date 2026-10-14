@@ -67,7 +67,7 @@
     </div>
   </div>
   <div class="container footer-bottom">
-    © <span id="year"></span> Saveurs Al Amine  Fait maison, fait avec amour.
+    © <span id="year"></span> Saveurs Al Amine — Fait maison, fait avec amour.
   </div>
 </footer>
 <a class="whatsapp-fab" href="https://wa.me/33753966207" target="_blank" rel="noopener" aria-label="WhatsApp">💬</a>
@@ -94,7 +94,7 @@ async function renderMenu() {
     const catItems = items.filter((it) => it.category === cat);
     const catTitle = document.createElement("div");
     catTitle.className = "category-title";
-    catTitle.innerHTML = `<h2>${cat}</h2>`;
+    catTitle.innerHTML = `<h2>${escapeHtml(cat)}</h2>`;
     container.appendChild(catTitle);
 
     const grid = document.createElement("div");
@@ -108,13 +108,13 @@ async function renderMenu() {
       const qty = inCart ? inCart.qty : 0;
 
       card.innerHTML = `
-        <div class="card-img"><img src="${item.image || '/images/logo.jpg'}" alt="${item.name}" loading="lazy"></div>
+        <div class="card-img"><img src="${escapeHtml(item.image || '/images/logo.jpg')}" alt="${escapeHtml(item.name)}" loading="lazy"></div>
         <div class="card-body">
           ${!item.available ? '<span class="badge-unavailable">Indisponible</span>' : ""}
-          <h3>${item.name}</h3>
-          ${item.description ? `<p class="desc">${item.description}</p>` : '<p class="desc"></p>'}
+          <h3>${escapeHtml(item.name)}</h3>
+          <p class="desc">${escapeHtml(item.description)}</p>
           <div class="card-footer">
-            <span class="price-tag">${item.priceLabel || (item.price + " €")}</span>
+            <span class="price-tag">${escapeHtml(item.priceLabel || formatEuro(Number(item.price) || 0))}</span>
             ${item.available ? `
             <div class="qty-control" data-id="${item.id}">
               <button class="qty-minus" aria-label="Retirer">−</button>

@@ -477,6 +477,22 @@ section { padding: 64px 0; }
 }
 
 .cart-bar.visible { display: flex; }
+.cart-bar .btn { white-space: nowrap; }
+
+@media (max-width: 560px) {
+  .cart-bar {
+    left: 12px;
+    right: 12px;
+    transform: none;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px 10px 18px;
+    border-radius: 18px;
+    font-size: 0.9rem;
+  }
+  /* Le bouton WhatsApp remonte au-dessus de la barre panier au lieu de la recouvrir */
+  .cart-bar.visible ~ .whatsapp-fab { bottom: 100px; }
+}
 
 .cart-list { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; }
 

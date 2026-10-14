@@ -35,6 +35,7 @@
   </div>
 
   <div class="container" style="max-width:720px;">
+    <div id="cart-notice" style="margin:0 auto 24px; max-width:640px; display:none;"></div>
     <div id="empty-cart-msg" style="display:none;" class="form-card">
       <p style="text-align:center;">Votre panier est vide pour le moment.</p>
       <div style="text-align:center; margin-top:16px;">
@@ -111,7 +112,7 @@
     </div>
   </div>
   <div class="container footer-bottom">
-    © <span id="year"></span> Saveurs Al Amine  Fait maison, fait avec amour.
+    © <span id="year"></span> Saveurs Al Amine — Fait maison, fait avec amour.
   </div>
 </footer>
 <a class="whatsapp-fab" href="https://wa.me/33753966207" target="_blank" rel="noopener" aria-label="WhatsApp">💬</a>
@@ -139,7 +140,7 @@ function renderCart() {
     const row = document.createElement("div");
     row.className = "cart-line";
     row.innerHTML = `
-      <span>${line.name}</span>
+      <span>${escapeHtml(line.name)}</span>
       <span style="display:flex; align-items:center; gap:10px;">
         <div class="qty-control">
           <button class="qty-minus" aria-label="Retirer">−</button>
@@ -189,8 +190,7 @@ document.getElementById("order-form").addEventListener("submit", async (e) => {
     mode: mode,
     adresse: document.getElementById("adresse").value.trim(),
     notes: document.getElementById("notes").value.trim(),
-    items: cart.map((l) => ({ name: l.name, qty: l.qty, price: l.price })),
-    total: formatEuro(cartTotal())
+    items: cart.map((l) => ({ id: l.id, name: l.name, qty: l.qty }))
   };
 
   const submitBtn = e.target.querySelector('button[type="submit"]');
@@ -202,8 +202,8 @@ document.getElementById("order-form").addEventListener("submit", async (e) => {
     clearCart();
     document.getElementById("order-flow").innerHTML = `
       <div class="form-card" style="text-align:center;">
-        <h3>Merci ${payload.prenom || payload.nom} ! 🎉</h3>
-        <p>Votre commande a bien été reçue. Nous vous recontactons rapidement au ${payload.telephone} pour confirmer.</p>
+        <h3>Merci ${escapeHtml(payload.prenom || payload.nom)} ! 🎉</h3>
+        <p>Votre commande a bien été reçue. Nous vous recontactons rapidement au ${escapeHtml(payload.telephone)} pour confirmer.</p>
         <a href="/menu.html" class="btn btn-outline" style="margin-top:16px;">Retour au menu</a>
       </div>
     `;
@@ -215,7 +215,23 @@ document.getElementById("order-form").addEventListener("submit", async (e) => {
   }
 });
 
-renderCart();
+async function init() {
+  renderCart();
+  try {
+    const removed = syncCartWithMenu(await fetchMenu());
+    if (removed.length > 0) {
+      const notice = document.getElementById("cart-notice");
+      notice.className = "form-msg error";
+      notice.style.display = "block";
+      notice.textContent = "Retiré de votre panier car plus disponible : " + removed.join(", ") + ".";
+    }
+    renderCart();
+  } catch (e) {
+    // Menu injoignable : on garde le panier tel quel, le serveur revérifie à l'envoi.
+  }
+}
+
+init();
 </script>
 </body>
 </html>

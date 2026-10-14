@@ -42,6 +42,23 @@ function removeFromCart(id) {
   return cart;
 }
 
+// Le panier est gardé dans le navigateur : on le remet à jour avec le menu actuel
+// (prix modifiés, plats retirés ou indisponibles). Renvoie les noms des plats retirés.
+function syncCartWithMenu(menu) {
+  const removed = [];
+  const cart = [];
+  getCart().forEach((line) => {
+    const item = menu.find((i) => i.id === line.id);
+    if (item && item.available) {
+      cart.push({ ...line, name: item.name, price: item.price, priceLabel: item.priceLabel });
+    } else {
+      removed.push(line.name);
+    }
+  });
+  saveCart(cart);
+  return removed;
+}
+
 function clearCart() {
   localStorage.removeItem(CART_KEY);
 }

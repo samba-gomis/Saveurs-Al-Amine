@@ -1,15 +1,7 @@
-const { getStore } = require("@netlify/blobs");
+import { createHash, timingSafeEqual } from "node:crypto";
+import { getStore } from "@netlify/blobs";
 
-function getBlobStore(name) {
-  const siteID = process.env.BLOBS_SITE_ID;
-  const token = process.env.BLOBS_TOKEN;
-  if (siteID && token) {
-    return getStore({ name, siteID, token });
-  }
-  return getStore(name);
-}
-
-const SEED_MENU = [
+export const SEED_MENU = [
   // Plats traditionnels
   { id: "plat-diaga", category: "Plats traditionnels", name: "Thiébou Diaga", description: "Riz au poisson, sauce tomate, légumes.", price: 10, priceLabel: "10€ la barquette", image: "/images/flyer-diaga-national.jpg", available: true },
   { id: "plat-yassa", category: "Plats traditionnels", name: "Yassa Lakeu Dieun", description: "Riz blanc, poisson braisé, oignons, sauce yassa.", price: 10, priceLabel: "10€ la barquette", image: "/images/flyer-diaga-yassa.jpg", available: true },
@@ -26,10 +18,10 @@ const SEED_MENU = [
   { id: "grill-assiette", category: "Grillades & sandwichs", name: "Assiette Gourmande", description: "2 brochettes, crudités + frites ou riz cantonnais.", price: 10, priceLabel: "10€", image: "/images/flyer-brochettes.jpg", available: true },
 
   // Box & plateaux (événements / grosses envies)
-  { id: "box-min", category: "Box & plateaux", name: "Box Alamine - Min", description: "5 nems ou 6 fatayas ou 15 akaras.", price: 5, priceLabel: "5€", image: "/images/flyer-box-plateau.jpg", available: true },
-  { id: "box-max", category: "Box & plateaux", name: "Box Alamine - Max", description: "10 nems ou 12 fatayas ou 30 akaras.", price: 10, priceLabel: "10€", image: "/images/flyer-box-plateau.jpg", available: true },
-  { id: "plateau-l", category: "Box & plateaux", name: "Plateau Alamine L (16 pièces)", description: "4 fatayas + 4 nems + 8 akaras, ou 8 fatayas + 8 akaras.", price: 9, priceLabel: "9€", image: "/images/flyer-box-plateau.jpg", available: true },
-  { id: "plateau-xl", category: "Box & plateaux", name: "Plateau Alamine XL (22 pièces)", description: "6 fatayas + 6 nems + 10 akaras, ou 11 fatayas + 11 akaras.", price: 13.5, priceLabel: "13,5€", image: "/images/flyer-box-plateau.jpg", available: true },
+  { id: "box-min", category: "Box & plateaux", name: "Box Al Amine - Min", description: "5 nems ou 6 fatayas ou 15 akaras.", price: 5, priceLabel: "5€", image: "/images/flyer-box-plateau.jpg", available: true },
+  { id: "box-max", category: "Box & plateaux", name: "Box Al Amine - Max", description: "10 nems ou 12 fatayas ou 30 akaras.", price: 10, priceLabel: "10€", image: "/images/flyer-box-plateau.jpg", available: true },
+  { id: "plateau-l", category: "Box & plateaux", name: "Plateau Al Amine L (16 pièces)", description: "4 fatayas + 4 nems + 8 akaras, ou 8 fatayas + 8 akaras.", price: 9, priceLabel: "9€", image: "/images/flyer-box-plateau.jpg", available: true },
+  { id: "plateau-xl", category: "Box & plateaux", name: "Plateau Al Amine XL (22 pièces)", description: "6 fatayas + 6 nems + 10 akaras, ou 11 fatayas + 11 akaras.", price: 13.5, priceLabel: "13,5€", image: "/images/flyer-box-plateau.jpg", available: true },
 
   // Beignets
   { id: "beignet-dougoub-10", category: "Beignets", name: "Beignets Dougoub (10 pièces)", description: "", price: 5, priceLabel: "5€", image: "/images/flyer-beignets.jpg", available: true },
@@ -50,65 +42,53 @@ const SEED_MENU = [
   { id: "jus-gingembre-150", category: "Boissons", name: "Gingembre citron menthe (1,5L)", description: "", price: 6, priceLabel: "6€", image: "/images/flyer-jus.jpg", available: true }
 ];
 
-function isAuthorized(event) {
-  const provided = event.headers["x-admin-password"] || event.headers["X-Admin-Password"];
-  const expected = process.env.ADMIN_PASSWORD;
-  return Boolean(expected) && provided === expected;
+// Sur Netlify, le format de fonction moderne (export default) reçoit automatiquement
+// les accès Blobs. BLOBS_SITE_ID / BLOBS_TOKEN restent possibles pour forcer un accès manuel.
+export function getBlobStore(name) {
+  const siteID = process.env.BLOBS_SITE_ID;
+  const token = process.env.BLOBS_TOKEN;
+  if (siteID && token) {
+    return getStore({ name, siteID, token });
+  }
+  return getStore(name);
 }
 
-exports.handler = async (event) => {
-  const store = getBlobStore("menu");
-  const headers = { "Content-Type": "application/json" };
-
-  if (event.httpMethod === "GET") {
-    let items = await store.get("items", { type: "json" });
-    if (!items) {
-      items = SEED_MENU;
-      await store.setJSON("items", items);
-    }
-    return { statusCode: 200, headers, body: JSON.stringify(items) };
+// Par défaut une lecture peut renvoyer une valeur vieille de 60 s : relire juste après
+// une écriture puis réécrire ferait perdre la modification. On lit donc en cohérence forte.
+export async function readJSON(store, key) {
+  try {
+    return await store.get(key, { type: "json", consistency: "strong" });
+  } catch (err) {
+    if (err.name !== "BlobsConsistencyError") throw err;
+    return store.get(key, { type: "json" });
   }
+}
 
-  if (!isAuthorized(event)) {
-    return { statusCode: 401, headers, body: JSON.stringify({ error: "Mot de passe admin invalide." }) };
+export async function loadMenu() {
+  return (await readJSON(getBlobStore("menu"), "items")) || structuredClone(SEED_MENU);
+}
+
+export function isAuthorized(req) {
+  const expected = process.env.ADMIN_PASSWORD;
+  if (!expected) return false;
+  const provided = req.headers.get("x-admin-password") || "";
+  const hash = (s) => createHash("sha256").update(s).digest();
+  return timingSafeEqual(hash(provided), hash(expected));
+}
+
+export async function readBody(req) {
+  try {
+    const data = await req.json();
+    return data && typeof data === "object" ? data : null;
+  } catch {
+    return null;
   }
+}
 
-  let items = (await store.get("items", { type: "json" })) || SEED_MENU;
+export function json(body, status = 200) {
+  return Response.json(body, { status });
+}
 
-  if (event.httpMethod === "POST") {
-    const data = JSON.parse(event.body || "{}");
-    if (!data.name || !data.price || !data.category) {
-      return { statusCode: 400, headers, body: JSON.stringify({ error: "Nom, catégorie et prix requis." }) };
-    }
-    const newItem = {
-      id: "item-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8),
-      category: data.category,
-      name: data.name,
-      description: data.description || "",
-      price: data.price,
-      image: data.image || "",
-      available: data.available !== false
-    };
-    items.push(newItem);
-    await store.setJSON("items", items);
-    return { statusCode: 200, headers, body: JSON.stringify(newItem) };
-  }
-
-  if (event.httpMethod === "PUT") {
-    const data = JSON.parse(event.body || "{}");
-    const idx = items.findIndex((i) => i.id === data.id);
-    if (idx === -1) return { statusCode: 404, headers, body: JSON.stringify({ error: "Article introuvable." }) };
-    items[idx] = { ...items[idx], ...data };
-    await store.setJSON("items", items);
-    return { statusCode: 200, headers, body: JSON.stringify(items[idx]) };
-  }
-
-  if (event.httpMethod === "DELETE") {
-    const id = event.queryStringParameters && event.queryStringParameters.id;
-    items = items.filter((i) => i.id !== id);
-    await store.setJSON("items", items);
-    return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
-  }
-
-  return { statusCode: 405, headers, body: JSON.stringify({ error: "Méthode non supportée." }) };
-};
+export function formatEuro(n) {
+  return n.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+}
